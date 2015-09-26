@@ -7,4 +7,7 @@ A haskell package for all your symbolic elementary algebra needs! It currently p
 * AST annotations
 * pretty-printer and parser
 * full computation/solving
-* differential calculus
+* trigonometric functions
+* summations
+* products
+* calculus
