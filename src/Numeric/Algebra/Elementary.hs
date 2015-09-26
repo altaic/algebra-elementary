@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -fdefer-typed-holes -fno-warn-orphans #-}
--- {-# LANGUAGE DeriveAnyClass #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -259,23 +258,14 @@ check (Var Id {name=""}) = False
 check (Error _)          = False
 check _                  = True
 
--- -- | Substitutes an 'AlgBinding' into an 'Expr', e.g. @a=2 /-> a + a^b^a => 2 + 2^b^2@.
--- subst :: AlgBinding -> Expr -> Expr
+-- -- | Substitutes an 'Expr' into an 'Expr', e.g. @a=2 /-> a + a^b^a => 2 + 2^b^2@.
+-- subst :: Expr -> Expr -> Expr
 -- subst b (Add es)     = Add (map (subst b) es)
 -- subst b (Mult es)    = Mult (map (subst b) es)
 -- subst b (Exp bb ee)  = Exp (subst b bb) (subst b ee)
 -- subst b (Log bb ee)  = Log (subst b bb) (subst b ee)
 -- subst (i, e) (Var v) = if (i == v) then e else Var v
 -- subst _ e            = e
-
--- -- | Applies a 'Fun' to an 'Expr', e.g. @f(a) = a^3, expr = 2^(f(z)) => expr = 2^a^3@.
--- apply :: Fun -> Expr -> Expr
--- apply b (Add es) = Add (map (apply b) es)
--- apply b (Mult es) = Mult (map (apply b) es)
--- apply b (Exp bb ee) = Exp (apply b bb) (apply b ee)
--- apply b (Log bb ee) = Log (apply b bb) (apply b ee)
--- apply (i, e) (Var v) = if (i == v) then e else Var v
--- apply _ e = e
 
 
 
@@ -461,15 +451,4 @@ simplifySort e         = e
 --   show (Add (e:es)    ) = show e ++ " + " ++ show (Add es)
 --   show (Exp b e       ) = show b ++ "^(" ++ show e ++ ")"
 --   show (Log b e       ) = "log_[" ++ show b ++ "](" ++ show e ++ ")"
---   show (Error s       ) = "[Error: " ++ s ++ "]"
-
--- instance Show Expr where
---   show (Coeff c       ) = "Coeff " ++ show (fromRational c :: Double)
---   show (Var v         ) = "Var " ++ show v
---   show (FunId i (v:vs)) = show i ++ "(" ++ L.foldr (\vv acc -> acc ++ ", " ++ show vv) (show v) vs ++ ")"
---   show (FunId i []    ) = show i ++ "()"
---   show (Mult es       ) = "Mult [\n" ++ L.foldr (\e acc -> show e ++ "×" ++ acc) [] es ++ "]\n"
---   show (Add es        ) = "Add [\n" ++ L.foldr (\e acc -> show e ++ "×" ++ acc) [] es ++ "]\n"
---   show (Exp b e       ) = "Exp (" ++ show b ++ ") (" ++ show e ++ ")\n"
---   show (Log b e       ) = "Log (" ++ show b ++ ") (" ++ show e ++ ")\n"
 --   show (Error s       ) = "[Error: " ++ s ++ "]"
