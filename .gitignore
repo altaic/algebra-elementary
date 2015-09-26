@@ -11,6 +11,8 @@ cabal-dev
 .hsenv
 .cabal-sandbox/
 cabal.sandbox.config
+.stack-work/
+.DS_Store
 *.prof
 *.aux
 *.hp
