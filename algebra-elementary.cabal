@@ -1,0 +1,59 @@
+name:                algebra-elementary
+version:             0.0.1
+synopsis:            Library for constructing and manipulating elementary algebraic expressions.
+description:
+  This library contains elementary algebraic types, as well as functions for manipulating and
+  simplifying them. The AST includes coefficients, variables, functions, and simple operators such
+  as add, multiply, exp, and log. See [ https://en.wikipedia.org/wiki/Elementary_algebra ].
+
+  Short-term future work may include supporting trigonometric functions, as well as common constants
+  such as pi and e. Additionally, long-term goals includes weighting expression primatives and using
+  a solver to apply rewrite rules to simplify as much as possible.
+homepage:            http://altaic.github.com/algebra-elementary
+bug-reports:         http://github.com/altaic/algebra-elementary/issues
+license:             BSD3
+license-file:        LICENSE
+author:              William Knop
+maintainer:          William Knop <william.knop.nospam@gmail.com>
+copyright:           Copyright (c) 2015 William Knop
+category:            Compiler Plugin
+build-type:          Simple
+cabal-version:       >=1.10
+tested-with:         GHC == 7.10.2
+
+extra-source-files:
+  README.md
+  --tests/*.hs
+
+library
+  hs-source-dirs:
+    src
+  exposed-modules:
+    Numeric.Algebra.Elementary
+  other-modules:
+  build-depends:
+    ghc                  >= 7.10.2,
+    base                 >= 4 && < 5,
+    containers           >= 0.5 && < 0.6,
+    unordered-containers >= 0.2 && < 0.3,
+    QuickCheck           >= 2.8 && < 2.9
+  ghc-options:           -Wall -O2 -funbox-strict-fields -fwarn-tabs
+  default-language:      Haskell2010
+
+test-suite algebra-elementary-test
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: testsuite
+  main-is:        Tasty.hs
+  build-depends:
+    base               >= 4.6 && < 5,
+    tasty              >= 0.10 && < 0.11,
+    tasty              >= 0.10 && < 0.11,
+    tasty-hunit        >= 0.9 && < 0.10,
+    tasty-quickcheck   >= 0.8 && < 0.9,
+    algebra-elementary
+  ghc-options:         -fno-warn-orphans -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type: git
+  location: https://github.com/altaic/ghc-plugin-aca.git
