@@ -10,4 +10,3 @@ A haskell package for all your symbolic elementary algebra needs! It currently p
 * trigonometric functions
 * summations
 * products
-* calculus
