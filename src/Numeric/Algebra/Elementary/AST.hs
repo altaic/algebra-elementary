@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fdefer-typed-holes -fno-warn-orphans #-}
-
+-- {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric      #-}
 
 
 ----------------------------------------------------------------------------------------------------
@@ -37,6 +38,7 @@ import qualified Data.Set         as S
 import qualified Data.Unique      as U
 import qualified System.IO.Unsafe as US
 import qualified Test.QuickCheck  as QC
+import GHC.Generics (Generic)
 
 
 
@@ -63,7 +65,7 @@ data Expr =
   Exp Expr Expr  | -- ^ Exponential Operator, e.g. @a^b@
   Log Expr Expr  | -- ^ Logarithmic Operator, e.g. @log_a(b)@
   Error String     -- ^ Error, e.g. @"Empty Mult is not okay!"@
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 -- | Gives an ordering for 'Expr' for the purpose of sorting into a canonicalized form.
 instance Ord Expr where
@@ -104,6 +106,7 @@ instance QC.Arbitrary Expr where
                  , M.liftM Add (QC.vectorOf k (arbExpr (n `div` k)))
                  , M.liftM Mult (QC.vectorOf k (arbExpr (n `div` k)))
                  ]
+  shrink = QC.genericShrink
 
 
 
@@ -113,7 +116,7 @@ instance QC.Arbitrary Expr where
 
 -- | A unique algebraic identifier, e.g. @x@.
 data Id = Id {name :: String, unique :: U.Unique }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 -- | Order identifiers first by name, then, if the names match, by unique.
 instance Ord Id where
@@ -141,7 +144,7 @@ instance QC.Arbitrary Id where
 -- -------------------------------------------------------------------------------------------------
 
 -- | An algebraic function, e.g. @f(x,y) = x^2 + y^2@.
-data Fun = Fun { ident :: Id, vars :: S.Set Id, expr :: Expr } deriving (Show)
+data Fun = Fun { ident :: Id, vars :: S.Set Id, expr :: Expr } deriving (Show, Generic)
 
 -- | Equality according to unique function identifier.
 instance Eq Fun where (==) Fun {ident=i1} Fun {ident=i2} = i1 == i2
