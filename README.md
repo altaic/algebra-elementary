@@ -1,5 +1,11 @@
 # algebra-elementary
 
+![License](https://img.shields.io/badge/license-BSD3-blue.svg?style=flat)
+[![Hackage Version](https://img.shields.io/hackage/v/hformat.svg?style=flat)](http://hackage.haskell.org/package/algebra-elementary)
+[![Build Status](https://travis-ci.org/altaic/algebra-elementary.svg?branch=master)](https://travis-ci.org/altaic/algebra-elementary)
+
+## What is this?
+
 A haskell package for all your symbolic elementary algebra needs! It currently provides an algebraic expression AST, simplification via rewriting, and a test-suite. Complete with haddock documentation.
 
 ## Coming soon...
@@ -10,5 +16,3 @@ A haskell package for all your symbolic elementary algebra needs! It currently p
 * trigonometric functions
 * summations
 * products
-
-[![Build Status](https://travis-ci.org/altaic/algebra-elementary.svg?branch=master)](https://travis-ci.org/altaic/algebra-elementary)
