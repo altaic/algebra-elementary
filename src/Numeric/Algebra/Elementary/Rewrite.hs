@@ -82,6 +82,7 @@ allSimplifiers = [ simplifyError
                  , simplifyLogExp
                  , simplifyExpLog
                  , simplifyExpCoeff
+                 , simplifyExpOne
                  , simplifyMultTriv
                  , simplifyAddTriv
                  , simplifySort
@@ -107,6 +108,11 @@ simplifyExpCoeff :: Simplifier
 simplifyExpCoeff (Exp (Coeff a) (Coeff b))         = Coeff (toRational ((fromRational a ** fromRational b) :: Double))
 simplifyExpCoeff (Exp (Coeff a) (Exp (Coeff b) e)) = Exp (Coeff (toRational ((fromRational a ** fromRational b) :: Double))) e
 simplifyExpCoeff e                                 = e
+
+-- | This applies the 'Exp' by one simplification @x^1 => x@
+simplifyExpOne :: Simplifier
+simplifyExpOne (Exp e (Coeff 1)) = e
+simplifyExpOne e                 = e
 
 -- | Expands addition in 'Log's, e.g. @log_2(a*b) => log_2(a) + log_2(b)@.
 simplifyLogMult :: Simplifier

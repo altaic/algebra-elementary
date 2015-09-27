@@ -67,6 +67,8 @@ utMathSimplifier = testGroup "Simplifier" [
                                      @?= A.Mult [A.Coeff 2, algVars!!0],
   testCase "Combine Exp Coeff"       $ R.simplify (A.Exp (A.Coeff 2) (A.Exp (A.Coeff 2) (algVars!!13)))
                                      @?= A.Exp (A.Coeff 4) (algVars!!13),
+  testCase "Eliminate Exp One"       $ R.simplify (A.Exp (algVars!!13) (A.Coeff 1))
+                                     @?= algVars!!13,
   testCase "Eliminate Exp Log"       $ R.simplify (A.Exp (A.Coeff 2) (A.Log (A.Coeff 2) (algVars!!0)))
                                      @?= algVars!!0,
   testCase "Expand Log Exp"          $ R.simplify (A.Log (A.Coeff 2) (A.Exp (algVars!!0) (algVars!!1)))
