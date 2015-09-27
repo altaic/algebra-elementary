@@ -20,6 +20,13 @@
 module Numeric.Algebra.Elementary.Pretty where
 
 import           Numeric.Algebra.Elementary.AST
+import qualified Text.Nicify                    as N
+
+
+
+prettyPrint :: Expr -> String
+prettyPrint e = N.nicify (show e)
+
 
 
 -- -- | Pretty-prints an 'Expr'.
