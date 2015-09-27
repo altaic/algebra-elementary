@@ -9,7 +9,7 @@ cache:
 
 env:
   matrix:
-    - STACK_YAML=stack-lts-3.6.yaml
+    - STACK_YAML=stack.yaml
 
 install:
   - travis_retry wget https://github.com/commercialhaskell/stack/releases/download/v0.1.5.0/stack-0.1.5.0-x86_64-linux.tar.gz
