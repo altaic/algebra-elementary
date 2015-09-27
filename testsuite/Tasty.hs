@@ -95,4 +95,6 @@ utMathOther = testGroup "Other" [
   testCase "Equality (fail-1)"                 $ A.Exp (A.Coeff 3) (algVars!!23) == A.Exp (A.Coeff 2) (algVars!!23)
                                                @?= False,
   testCase "Equality (fail-2)"                 $ A.Exp (A.Coeff 2) (A.Mult [algVars!!23, algVars!!24]) == A.Exp (A.Coeff 2) (algVars!!23)
-                                               @?= False ]
+                                               @?= False,
+  testCase "Uniques Are Unique"                $ A.mkId "x" /= A.mkId "x"
+                                               @?= True ]
