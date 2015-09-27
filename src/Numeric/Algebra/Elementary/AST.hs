@@ -72,20 +72,20 @@ instance Ord Expr where
     | otherwise = compare (rank e1) (rank e2)
     where
       rankId :: Id -> Double
-      rankId (Id {name=n}) = foldr (\c acc -> acc + fromIntegral (C.ord c)) 0 n
+      rankId (Id {name=n}) = sum $ map (fromIntegral . C.ord) n
       rankSt :: String -> Double
-      rankSt = foldr (\c acc -> acc + fromIntegral (C.ord c)) 0 -- __/TODO/__: Possibly use Data.Char.digitToInt instead.
+      rankSt s = sum $ map (fromIntegral . C.ord) s -- __/TODO/__: Possibly use Data.Char.digitToInt instead.
       rankHelper :: Double -> Double
       rankHelper 0 = 0
       rankHelper n = 1 - 1/n
       rank :: Expr -> Double
       rank (Coeff c)  = rankHelper (fromRational c)
       rank (Var i)    = 1 + rankHelper (rankId i)
-      rank (App i vs) = 2 + rankHelper (rankId i) + rankHelper (foldr (\v acc -> acc + rankId v) 0 vs)
+      rank (App i vs) = 2 + rankHelper (rankId i) + rankHelper (sum $ map rankId vs)
       rank (Exp b e)  = 4 + rankHelper (rank b) + rankHelper (rank e)
       rank (Log b e)  = 6 + rankHelper (rank b) + rankHelper (rank e)
-      rank (Add es)   = 8 + rankHelper (foldr (\e acc -> acc + rank e) 0 es)
-      rank (Mult es)  = 9 + rankHelper (foldr (\e acc -> acc * rank e) 1 es)
+      rank (Add es)   = 8 + rankHelper (sum $ map rank es)
+      rank (Mult es)  = 9 + rankHelper (product $ map rank es)
       rank (Error s)  = 10 + rankHelper (rankSt s)
 
 -- | 'Arbitrary' 'Expr' instance for 'QuickCheck'.
@@ -197,10 +197,10 @@ mkFun :: String -> Expr -> Fun
 mkFun n e = Fun { ident=mkId n, vars=getVars e, expr=e } where
   getVars :: Expr -> S.Set Id
   getVars (Var i)    = S.singleton i
-  getVars (Add es)   = foldr (\ee acc-> S.union (getVars ee) acc) S.empty es
-  getVars (Mult es)  = foldr (\ee acc-> S.union (getVars ee) acc) S.empty es
-  getVars (Exp b ee)  = S.union (getVars b) (getVars ee)
-  getVars (Log b ee)  = S.union (getVars b) (getVars ee)
+  getVars (Add es)   = S.unions $ map getVars es
+  getVars (Mult es)  = S.unions $ map getVars es
+  getVars (Exp b ee) = S.union (getVars b) (getVars ee)
+  getVars (Log b ee) = S.union (getVars b) (getVars ee)
   getVars (App _ vs) = S.fromList vs
   getVars _          = S.empty
 
@@ -216,8 +216,8 @@ mkFun n e = Fun { ident=mkId n, vars=getVars e, expr=e } where
 -- >>> check (Mult [Coeff 5, mkVar "", Coeff 2])
 -- False
 check :: Expr -> Bool
-check (Add es)           = foldr (\e acc -> acc && check e) True es
-check (Mult es)          = foldr (\e acc -> acc && check e) True es
+check (Add es)           = all check es
+check (Mult es)          = all check es
 check (Log b e)          = check b && check e
 check (Exp b e)          = check b && check e
 check (Var Id {name=""}) = False
