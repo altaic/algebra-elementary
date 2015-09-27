@@ -80,6 +80,7 @@ allSimplifiers = [ simplifyError
                  , simplifyAddCoeff
                  , simplifyAddZero
                  , simplifyLogExp
+                 , simplifyLogBB
                  , simplifyExpLog
                  , simplifyExpCoeff
                  , simplifyExpOne
@@ -118,6 +119,11 @@ simplifyExpOne e                 = e
 simplifyLogMult :: Simplifier
 simplifyLogMult (Log b (Mult es)) = Add (map (Log b) es)
 simplifyLogMult e                 = e
+
+-- | Eliminates `Log` with the same base and expression, e.g. @log_b(b) => 1@
+simplifyLogBB :: Simplifier
+simplifyLogBB (Log b e) | b == e = Coeff 1
+simplifyLogBB e         = e
 
 -- | This applies the 'Mult' 'Coeff' simplification @2*x*3*y*4 => 24*x*y@.
 simplifyMultCoeff :: Simplifier
