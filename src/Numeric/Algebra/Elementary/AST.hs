@@ -171,8 +171,11 @@ data Universe = Universe { functions :: S.Set Fun }
 
 -- | Makes a unique identifier.
 --
--- >>> mkId "x"
--- Id {name = "x", unique = <1>}
+-- >>> (mkId "x", mkId "y")
+-- (Id {name = "x", unique = <1>},Id {name = "y", unique = <2>})
+--
+-- __/FIXME:/__ For some reason, the test-suite generates 'Id's with all the same 'Unique',
+-- specifically <1>.
 mkId :: String -> Id
 mkId n = let u = US.unsafePerformIO U.newUnique in Id { name = n, unique = u }
 
