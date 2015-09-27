@@ -10,3 +10,5 @@ A haskell package for all your symbolic elementary algebra needs! It currently p
 * trigonometric functions
 * summations
 * products
+
+[![Build Status](https://travis-ci.org/altaic/algebra-elementary.svg?branch=master)](https://travis-ci.org/altaic/algebra-elementary)
