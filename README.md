@@ -1,6 +1,8 @@
 # algebra-elementary
 
-[![Hackage Version](https://img.shields.io/hackage/v/hformat.svg?style=flat)](http://hackage.haskell.org/package/algebra-elementary) [![Build Status](https://travis-ci.org/altaic/algebra-elementary.svg?branch=master)](https://travis-ci.org/altaic/algebra-elementary)
+![License](https://img.shields.io/badge/license-BSD3-blue.svg?style=flat)
+[![Hackage Version](https://img.shields.io/hackage/v/hformat.svg?style=flat)](http://hackage.haskell.org/package/algebra-elementary)
+[![Build Status](https://travis-ci.org/altaic/algebra-elementary.svg?branch=master)](https://travis-ci.org/altaic/algebra-elementary)
 
 ## What is this?
 
