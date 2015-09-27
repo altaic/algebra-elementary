@@ -73,10 +73,10 @@ utMathSimplifier = testGroup "Simplifier" [
                                      @?= A.Mult [algVars!!1, A.Log (A.Coeff 2) (algVars!!0)],
   testCase "Expand Log Mult"         $ R.simplify (A.Log (A.Coeff 2) (A.Mult [algVars!!0, algVars!!1]))
                                      @?= A.Add [A.Log (A.Coeff 2) (algVars!!0), A.Log (A.Coeff 2) (algVars!!1)],
-  testCase "Empty Mult Error"        $ R.simplify (A.Exp (A.Coeff 2) (A.Mult []))
-                                     @?= A.Exp (A.Coeff 2) (A.Error "Empty Mult!"),
-  testCase "Empty Add Error"         $ R.simplify (A.Exp (A.Coeff 2) (A.Add []))
-                                     @?= A.Exp (A.Coeff 2) (A.Error "Empty Add!") ]
+  testCase "Simplify Empty Mult"     $ R.simplify (A.Exp (A.Coeff 2) (A.Mult []))
+                                     @?= A.Coeff 2,
+  testCase "Simplify Empty Add"      $ R.simplify (A.Exp (A.Coeff 2) (A.Add []))
+                                     @?= A.Coeff 1 ]
 
 utMathOther :: TestTree
 utMathOther = testGroup "Other" [

@@ -68,6 +68,8 @@ applySimplifiers ss op =
 -- | Convenient list of all simplifiers.
 allSimplifiers :: [Simplifier]
 allSimplifiers = [ simplifyError
+                 , simplifyMultEmpty
+                 , simplifyAddEmpty
                  , simplifyMultFlatten
                  , simplifyAddFlatten
                  , simplifyMultAlike
@@ -87,8 +89,6 @@ allSimplifiers = [ simplifyError
 
 -- | Empty 'Mult's, 'Add's, and 'Var's are invalid, so this nukes them.
 simplifyError :: Simplifier
-simplifyError (Mult [])          = Error "Empty Mult!"
-simplifyError (Add [])           = Error "Empty Add!"
 simplifyError (Var Id {name=""}) = Error "Empty Var!"
 simplifyError e                  = e
 
@@ -129,6 +129,11 @@ simplifyMultTriv :: Simplifier
 simplifyMultTriv (Mult [e]) = e
 simplifyMultTriv e          = e
 
+-- | Treats empty 'Mult' as 'Coeff' 1, in the convention of <https://en.wikipedia.org/wiki/Empty_product>.
+simplifyMultEmpty :: Simplifier
+simplifyMultEmpty (Mult []) = Coeff 1
+simplifyMultEmpty e        = e
+
 -- | Applies the common 'Mult' simplification @a*a*a => a^3@
 simplifyMultAlike :: Simplifier
 simplifyMultAlike (Mult es) = Mult (foldr (\ees acc -> case ees of [eee] -> eee:acc; eee:eees -> (Exp eee (Coeff (fromIntegral (L.length eees)+1))):acc; [] -> acc) [] (L.group es))
@@ -143,6 +148,11 @@ simplifyAddAlike e        = e
 simplifyAddTriv :: Simplifier
 simplifyAddTriv (Add [e]) = e
 simplifyAddTriv e         = e
+
+-- | Treats empty 'Add' as 'Coeff' 0, in the convention of <https://en.wikipedia.org/wiki/Empty_sum>.
+simplifyAddEmpty :: Simplifier
+simplifyAddEmpty (Add []) = Coeff 0
+simplifyAddEmpty e        = e
 
 -- | Flattens nested 'Mult's.
 simplifyMultFlatten :: Simplifier

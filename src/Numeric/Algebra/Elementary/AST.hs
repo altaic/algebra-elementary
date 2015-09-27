@@ -216,9 +216,7 @@ mkFun n e = Fun { ident=mkId n, vars=getVars e, expr=e } where
 -- >>> check (Mult [Coeff 5, mkVar "", Coeff 2])
 -- False
 check :: Expr -> Bool
-check (Add [])           = False
 check (Add es)           = foldr (\e acc -> acc && check e) True es
-check (Mult [])          = False
 check (Mult es)          = foldr (\e acc -> acc && check e) True es
 check (Log b e)          = check b && check e
 check (Exp b e)          = check b && check e
