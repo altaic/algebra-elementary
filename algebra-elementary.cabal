@@ -29,7 +29,6 @@ library
   hs-source-dirs:
     src
   exposed-modules:
-    Numeric.Algebra.Elementary
     Numeric.Algebra.Elementary.AST
     Numeric.Algebra.Elementary.Parse
     Numeric.Algebra.Elementary.Pretty
