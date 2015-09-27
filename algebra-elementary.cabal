@@ -1,5 +1,5 @@
 name:                algebra-elementary
-version:             0.0.1
+version:             0.0.2
 synopsis:            Library for constructing and manipulating elementary algebraic expressions.
 description:
   This library contains elementary algebraic types, as well as functions for manipulating and
@@ -30,6 +30,11 @@ library
     src
   exposed-modules:
     Numeric.Algebra.Elementary
+    Numeric.Algebra.Elementary.AST
+    Numeric.Algebra.Elementary.Parse
+    Numeric.Algebra.Elementary.Pretty
+    Numeric.Algebra.Elementary.Rewrite
+    Numeric.Algebra.Elementary.Solve
   other-modules:
   build-depends:
     ghc                  >= 7.10.2,
