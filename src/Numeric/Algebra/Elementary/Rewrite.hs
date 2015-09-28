@@ -36,6 +36,10 @@ type Simplifier = Expr -> Expr
 --
 -- >>> simplify (Mult [Coeff 5, mkVar "x", Coeff 2])
 -- Mult [Coeff (10 % 1),Var (Id {name = "x", unique = <1>})]
+--
+-- __/TODO:/__ Badly designed simplifiers may cause the expressions to oscillate, which will send
+-- this into an infinite loop and likely cause a stack overflow. We should really cap the number of
+-- times simplifier can run, or somehow detect cycles and abort.
 simplify :: Simplifier
 simplify e = if e == se then e else simplify se
   where se = applySimplifiers allSimplifiers e
