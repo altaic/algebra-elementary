@@ -110,10 +110,10 @@ utMathOther = testGroup "Other" [
   testCase "Equality (fail-1)"                 $ A.Exp (A.Coeff 3) (algVars!!23) == A.Exp (A.Coeff 2) (algVars!!23)
                                                @?= False,
   testCase "Equality (fail-2)"                 $ A.Exp (A.Coeff 2) (A.Mult [algVars!!23, algVars!!24]) == A.Exp (A.Coeff 2) (algVars!!23)
-                                               @?= False,
-  testCase "Uniques Are Unique"                $ uniques!!0 /= uniques!!1
-                                               @?= True,
-  testCase "Ids Are Unique"                    $ algSameIds!!0 /= algSameIds!!1
-                                               @?= True,
-  testCase "Vars Are Unique"                   $ algSameVars!!0 /= algSameVars!!1
-                                               @?= True ]
+                                               @?= False ]
+  -- testCase "Uniques Are Unique"                $ uniques!!0 /= uniques!!1
+  --                                              @?= True,
+  -- testCase "Ids Are Unique"                    $ algSameIds!!0 /= algSameIds!!1
+  --                                              @?= True,
+  -- testCase "Vars Are Unique"                   $ algSameVars!!0 /= algSameVars!!1
+  --                                              @?= True ]
