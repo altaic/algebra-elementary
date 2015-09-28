@@ -29,18 +29,16 @@ import           Numeric.Algebra.Elementary.AST
 -- | A Simplifier takes an 'Expr' and returns a simplified 'Expr'.
 type Simplifier = Expr -> Expr
 
--- | Squashes algebraic expressions in a single pass. Note that it therefore has the property:
+-- | Applies simplifiers repeatedly until the expression remains the same. Note that it therefore
+-- has the property:
 --
 -- prop> simplify e == simplify (simplify e)
---
--- __/FIXME:/__ The order of simplifiers may be wrong, else there's a bug in one of the simplifiers.
--- The simplifyLogMult doesn't seem to fire unless the simplifiers are all run multiple times. Need
--- to go through and figure out which simplifiers have dependencies on other ones.
 --
 -- >>> simplify (Mult [Coeff 5, mkVar "x", Coeff 2])
 -- Mult [Coeff (10 % 1),Var (Id {name = "x", unique = <1>})]
 simplify :: Simplifier
-simplify e = applySimplifiers allSimplifiers (applySimplifiers allSimplifiers e)
+simplify e = if e == se then e else simplify se
+  where se = applySimplifiers allSimplifiers e
 
 -- | Takes a list of 'Simplifier's and applies them to an 'Expr' in order.
 --
