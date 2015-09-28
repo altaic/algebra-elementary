@@ -34,7 +34,8 @@ type Simplifier = Expr -> Expr
 -- prop> simplify e == simplify (simplify e)
 --
 -- __/FIXME:/__ The order of simplifiers may be wrong, else there's a bug in one of the simplifiers.
--- The simplifyLogMult doesn't seem to fire unless the simplifiers are all run twice.
+-- The simplifyLogMult doesn't seem to fire unless the simplifiers are all run multiple times. Need
+-- to go through and figure out which simplifiers have dependencies on other ones.
 --
 -- >>> simplify (Mult [Coeff 5, mkVar "x", Coeff 2])
 -- Mult [Coeff (10 % 1),Var (Id {name = "x", unique = <1>})]
