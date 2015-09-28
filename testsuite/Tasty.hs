@@ -33,7 +33,7 @@ tests :: TestTree
 tests = testGroup "Tests" [unitTests, properties]
 
 properties :: TestTree
-properties = localOption (mkTimeout 500000) (testGroup "QuickCheck Properties" [ qcMathSimplifier ])
+properties = localOption (mkTimeout 5000000) (testGroup "QuickCheck Properties" [ qcMathSimplifier ])
 
 qcMathSimplifier :: TestTree
 qcMathSimplifier = testGroup "Simplifier"
