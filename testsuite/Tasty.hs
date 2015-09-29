@@ -16,13 +16,12 @@
 
 module Main where
 
-import           Test.Tasty
-import           Test.Tasty.HUnit
--- import Test.Tasty.SmallCheck as SC
 import qualified Data.Unique                        as U
 import           Numeric.Algebra.Elementary.AST     as A
 import           Numeric.Algebra.Elementary.Rewrite as R
 import qualified System.IO.Unsafe                   as US
+import           Test.Tasty
+import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck              as QC
 
 
