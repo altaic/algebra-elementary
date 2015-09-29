@@ -26,172 +26,172 @@ import           Numeric.Algebra.Elementary.AST
 -- * Algebraic Expression Manipulation
 -- -------------------------------------------------------------------------------------------------
 
--- | A Simplifier takes an 'Expr' and returns a simplified 'Expr'.
-type Simplifier = Expr -> Expr
+-- | A Rewriter takes an 'Expr' and returns a simplified 'Expr'.
+type Rewriter = Expr -> Expr
 
--- | Applies simplifiers repeatedly until the expression remains the same. Note that it therefore
--- has the property:
+-- | Applies simplification rewriters repeatedly until the expression remains the same. Note that it
+-- therefore has the property:
 --
 -- prop> simplify e == simplify (simplify e)
 --
 -- >>> simplify (Mult [Coeff 5, mkVar "x", Coeff 2])
 -- Mult [Coeff (10 % 1),Var (Id {name = "x", unique = <1>})]
 --
--- __/TODO:/__ Badly designed simplifiers may cause the expressions to oscillate, which will send
--- this into an infinite loop and likely cause a stack overflow. We should really cap the number of
--- times simplifier can run, or somehow detect cycles and abort.
-simplify :: Simplifier
+-- __/TODO:/__ Badly designed rewriters may cause the expressions to oscillate, which will send this
+-- into an infinite loop and likely cause a stack overflow. We should really cap the number of times
+-- rewriter can run, or somehow detect cycles and abort.
+simplify :: Rewriter
 simplify e = if e == se then e else simplify se
-  where se = applySimplifiers allSimplifiers e
+  where se = applyRewriters allSimplifiers e
 
--- | Takes a list of 'Simplifier's and applies them to an 'Expr' in order.
+-- | Takes a list of 'Rewriter's and applies them to an 'Expr' in order.
 --
--- >>> applySimplifiers [simplifyMultCoeff] (Mult [Coeff 5, mkVar "x", Coeff 2])
+-- >>> applyRewriters [rewriteMultCoeff] (Mult [Coeff 5, mkVar "x", Coeff 2])
 -- Mult [Coeff (10 % 1),Var (Id {name = "x", unique = <1>})]
-applySimplifiers :: [Simplifier] -> Expr -> Expr
-applySimplifiers ss op =
+applyRewriters :: [Rewriter] -> Expr -> Expr
+applyRewriters ss op =
   case op of
-    Add es   -> applyFuncs ss $ Add $ map (applySimplifiers ss) es
-    Mult es  -> applyFuncs ss $ Mult $ map (applySimplifiers ss) es
-    Exp b e  -> applyFuncs ss $ Exp (applySimplifiers ss b) (applySimplifiers ss e)
-    Log b e  -> applyFuncs ss $ Log (applySimplifiers ss b) (applySimplifiers ss e)
+    Add es   -> applyFuncs ss $ Add $ map (applyRewriters ss) es
+    Mult es  -> applyFuncs ss $ Mult $ map (applyRewriters ss) es
+    Exp b e  -> applyFuncs ss $ Exp (applyRewriters ss b) (applyRewriters ss e)
+    Log b e  -> applyFuncs ss $ Log (applyRewriters ss b) (applyRewriters ss e)
     Coeff e  -> applyFuncs ss $ Coeff e
     Var e    -> applyFuncs ss $ Var e
     App i vs -> applyFuncs ss $ App i vs
-    Error e  -> applyFuncs ss $ Error e -- __/NOTE:/__ I can't presently think of a reason to apply a simplifier to an Error, but I'll leave it just in case.
+    Error e  -> applyFuncs ss $ Error e -- __/NOTE:/__ I can't presently think of a reason to apply a rewriter to an Error, but I'll leave it just in case.
   where
     applyFuncs = flip (L.foldl' (flip ($)))
 
 
 
 -- -------------------------------------------------------------------------------------------------
--- * Individual Rewriters (a.k.a. simplifiers)
+-- * Individual Rewriters (a.k.a. rewriters)
 -- -------------------------------------------------------------------------------------------------
 
 -- | Convenient list of all simplifiers.
-allSimplifiers :: [Simplifier]
-allSimplifiers = [ simplifyError
-                 , simplifyMultEmpty
-                 , simplifyAddEmpty
-                 , simplifyMultFlatten
-                 , simplifyAddFlatten
-                 , simplifyMultAlike
-                 , simplifyLogMult
-                 , simplifyAddAlike
-                 , simplifyMultCoeff
-                 , simplifyMultOne
-                 , simplifyAddCoeff
-                 , simplifyAddZero
-                 , simplifyLogExp
-                 , simplifyLogBB
-                 , simplifyExpLog
-                 , simplifyExpCoeff
-                 , simplifyExpOne
-                 , simplifyMultTriv
-                 , simplifyAddTriv
-                 , simplifySort
+allSimplifiers :: [Rewriter]
+allSimplifiers = [ rewriteError
+                 , rewriteMultEmpty
+                 , rewriteAddEmpty
+                 , rewriteMultFlatten
+                 , rewriteAddFlatten
+                 , rewriteMultAlike
+                 , rewriteLogMult
+                 , rewriteAddAlike
+                 , rewriteMultCoeff
+                 , rewriteMultOne
+                 , rewriteAddCoeff
+                 , rewriteAddZero
+                 , rewriteLogExp
+                 , rewriteLogBB
+                 , rewriteExpLog
+                 , rewriteExpCoeff
+                 , rewriteExpOne
+                 , rewriteMultTriv
+                 , rewriteAddTriv
+                 , rewriteSort
                  ]
 
 -- | Empty 'Mult's, 'Add's, and 'Var's are invalid, so this nukes them.
-simplifyError :: Simplifier
-simplifyError (Var Id {name=""}) = Error "Empty Var!"
-simplifyError e                  = e
+rewriteError :: Rewriter
+rewriteError (Var Id {name=""}) = Error "Empty Var!"
+rewriteError e                  = e
 
 -- | This applies the 'Log' 'Exp' simplification @log_a(b^c)) => c*log_a(b)@.
-simplifyLogExp :: Simplifier
-simplifyLogExp (Log b (Exp bb ee)) = Mult [ee, Log b bb]
-simplifyLogExp e                   = e
+rewriteLogExp :: Rewriter
+rewriteLogExp (Log b (Exp bb ee)) = Mult [ee, Log b bb]
+rewriteLogExp e                   = e
 
 -- | This applies the 'Exp' 'Log' simplification @a^(log_a(b)) => b@.
-simplifyExpLog :: Simplifier
-simplifyExpLog (Exp b (Log bb ee)) = if b == bb then ee else Exp b (Log bb ee)
-simplifyExpLog e                   = e
+rewriteExpLog :: Rewriter
+rewriteExpLog (Exp b (Log bb ee)) = if b == bb then ee else Exp b (Log bb ee)
+rewriteExpLog e                   = e
 
 -- | This applies the 'Exp' 'Coeff' simplification @2^2^n => 4^n@.
-simplifyExpCoeff :: Simplifier
-simplifyExpCoeff (Exp (Coeff a) (Coeff b))         = Coeff (toRational ((fromRational a ** fromRational b) :: Double))
-simplifyExpCoeff (Exp (Coeff a) (Exp (Coeff b) e)) = Exp (Coeff (toRational ((fromRational a ** fromRational b) :: Double))) e
-simplifyExpCoeff e                                 = e
+rewriteExpCoeff :: Rewriter
+rewriteExpCoeff (Exp (Coeff a) (Coeff b))         = Coeff (toRational ((fromRational a ** fromRational b) :: Double))
+rewriteExpCoeff (Exp (Coeff a) (Exp (Coeff b) e)) = Exp (Coeff (toRational ((fromRational a ** fromRational b) :: Double))) e
+rewriteExpCoeff e                                 = e
 
 -- | This applies the 'Exp' by one simplification @x^1 => x@
-simplifyExpOne :: Simplifier
-simplifyExpOne (Exp e (Coeff 1)) = e
-simplifyExpOne e                 = e
+rewriteExpOne :: Rewriter
+rewriteExpOne (Exp e (Coeff 1)) = e
+rewriteExpOne e                 = e
 
 -- | Expands addition in 'Log's, e.g. @log_2(a*b) => log_2(a) + log_2(b)@.
-simplifyLogMult :: Simplifier
-simplifyLogMult (Log b (Mult es)) = Add (map (Log b) es)
-simplifyLogMult e                 = e
+rewriteLogMult :: Rewriter
+rewriteLogMult (Log b (Mult es)) = Add (map (Log b) es)
+rewriteLogMult e                 = e
 
 -- | Eliminates `Log` with the same base and expression, e.g. @log_b(b) => 1@
-simplifyLogBB :: Simplifier
-simplifyLogBB (Log b e) | b == e = Coeff 1
-simplifyLogBB e         = e
+rewriteLogBB :: Rewriter
+rewriteLogBB (Log b e) | b == e = Coeff 1
+rewriteLogBB e         = e
 
 -- | This applies the 'Mult' 'Coeff' simplification @2*x*3*y*4 => 24*x*y@.
-simplifyMultCoeff :: Simplifier
-simplifyMultCoeff (Mult es) = Mult ((Coeff c):ms) where (c, ms) = foldr (\e (cc, mms) -> case e of Coeff ccc -> (cc*ccc, mms); ee -> (cc, ee:mms)) (1, []) es
-simplifyMultCoeff e         = e
+rewriteMultCoeff :: Rewriter
+rewriteMultCoeff (Mult es) = Mult ((Coeff c):ms) where (c, ms) = foldr (\e (cc, mms) -> case e of Coeff ccc -> (cc*ccc, mms); ee -> (cc, ee:mms)) (1, []) es
+rewriteMultCoeff e         = e
 
 -- | This applies the 'Mult' by one simplification @1*x => x@.
-simplifyMultOne :: Simplifier
--- simplifyMultOne (Mult [e]) = e
-simplifyMultOne (Mult (e:es)) = let f = filter (Coeff 1 /=) (e:es) in case f of [] -> Coeff 1; fs -> Mult fs
-simplifyMultOne e             = e
+rewriteMultOne :: Rewriter
+-- rewriteMultOne (Mult [e]) = e
+rewriteMultOne (Mult (e:es)) = let f = filter (Coeff 1 /=) (e:es) in case f of [] -> Coeff 1; fs -> Mult fs
+rewriteMultOne e             = e
 
 -- | Drops 'Mult's with only one element.
-simplifyMultTriv :: Simplifier
-simplifyMultTriv (Mult [e]) = e
-simplifyMultTriv e          = e
+rewriteMultTriv :: Rewriter
+rewriteMultTriv (Mult [e]) = e
+rewriteMultTriv e          = e
 
 -- | Treats empty 'Mult' as 'Coeff' 1, in the convention of <https://en.wikipedia.org/wiki/Empty_product>.
-simplifyMultEmpty :: Simplifier
-simplifyMultEmpty (Mult []) = Coeff 1
-simplifyMultEmpty e        = e
+rewriteMultEmpty :: Rewriter
+rewriteMultEmpty (Mult []) = Coeff 1
+rewriteMultEmpty e        = e
 
 -- | Applies the common 'Mult' simplification @a*a*a => a^3@
-simplifyMultAlike :: Simplifier
-simplifyMultAlike (Mult es) = Mult (foldr (\ees acc -> case ees of [eee] -> eee:acc; eee:eees -> (Exp eee (Coeff (fromIntegral (L.length eees)+1))):acc; [] -> acc) [] (L.group es))
-simplifyMultAlike e         = e
+rewriteMultAlike :: Rewriter
+rewriteMultAlike (Mult es) = Mult (foldr (\ees acc -> case ees of [eee] -> eee:acc; eee:eees -> (Exp eee (Coeff (fromIntegral (L.length eees)+1))):acc; [] -> acc) [] (L.group es))
+rewriteMultAlike e         = e
 
 -- | Applies the common 'Add' simplification @a+a+a => 3*a@
-simplifyAddAlike :: Simplifier
-simplifyAddAlike (Add es) = Add (foldr (\ees acc -> case ees of [eee] -> eee:acc; eee:eees -> (Mult [Coeff (fromIntegral (L.length eees)+1), eee]):acc; [] -> acc) [] (L.group es))
-simplifyAddAlike e        = e
+rewriteAddAlike :: Rewriter
+rewriteAddAlike (Add es) = Add (foldr (\ees acc -> case ees of [eee] -> eee:acc; eee:eees -> (Mult [Coeff (fromIntegral (L.length eees)+1), eee]):acc; [] -> acc) [] (L.group es))
+rewriteAddAlike e        = e
 
 -- | Drops 'Add's with only one element.
-simplifyAddTriv :: Simplifier
-simplifyAddTriv (Add [e]) = e
-simplifyAddTriv e         = e
+rewriteAddTriv :: Rewriter
+rewriteAddTriv (Add [e]) = e
+rewriteAddTriv e         = e
 
 -- | Treats empty 'Add' as 'Coeff' 0, in the convention of <https://en.wikipedia.org/wiki/Empty_sum>.
-simplifyAddEmpty :: Simplifier
-simplifyAddEmpty (Add []) = Coeff 0
-simplifyAddEmpty e        = e
+rewriteAddEmpty :: Rewriter
+rewriteAddEmpty (Add []) = Coeff 0
+rewriteAddEmpty e        = e
 
 -- | Flattens nested 'Mult's.
-simplifyMultFlatten :: Simplifier
-simplifyMultFlatten (Mult es) = Mult (foldr (\e acc -> case e of Mult ees -> ees ++ acc; ee -> ee:acc) [] es)
-simplifyMultFlatten e         = e
+rewriteMultFlatten :: Rewriter
+rewriteMultFlatten (Mult es) = Mult (foldr (\e acc -> case e of Mult ees -> ees ++ acc; ee -> ee:acc) [] es)
+rewriteMultFlatten e         = e
 
 -- | This applies the 'Add' zero simplification @x+0 => x@.
-simplifyAddZero :: Simplifier
--- simplifyAddZero (Add [e])    = e
-simplifyAddZero (Add (e:es)) = let f = filter (Coeff 0 /=) (e:es) in case f of [] -> Coeff 1; fs -> Add fs
-simplifyAddZero e            = e
+rewriteAddZero :: Rewriter
+-- rewriteAddZero (Add [e])    = e
+rewriteAddZero (Add (e:es)) = let f = filter (Coeff 0 /=) (e:es) in case f of [] -> Coeff 1; fs -> Add fs
+rewriteAddZero e            = e
 
 -- | Flattens nested 'Add's.
-simplifyAddFlatten :: Simplifier
-simplifyAddFlatten (Add es) = Add (foldr (\e acc -> case e of Add ees -> ees ++ acc; ee -> ee:acc) [] es)
-simplifyAddFlatten e        = e
+rewriteAddFlatten :: Rewriter
+rewriteAddFlatten (Add es) = Add (foldr (\e acc -> case e of Add ees -> ees ++ acc; ee -> ee:acc) [] es)
+rewriteAddFlatten e        = e
 
 -- | This applies the 'Add' 'Coeff' simplification @2+x+3+y+4 => 9+x+y@.
-simplifyAddCoeff :: Simplifier
-simplifyAddCoeff (Add es) = Add ((Coeff c):ms) where (c, ms) = foldr (\e (cc, mms) -> case e of Coeff ccc -> (cc + ccc, mms); ee -> (cc, ee:mms)) (0, []) es
-simplifyAddCoeff e        = e
+rewriteAddCoeff :: Rewriter
+rewriteAddCoeff (Add es) = Add ((Coeff c):ms) where (c, ms) = foldr (\e (cc, mms) -> case e of Coeff ccc -> (cc + ccc, mms); ee -> (cc, ee:mms)) (0, []) es
+rewriteAddCoeff e        = e
 
 -- | Sorts an 'Expr'.
-simplifySort :: Simplifier
-simplifySort (Add es)  = Add (L.sort es)
-simplifySort (Mult es) = Mult (L.sort es)
-simplifySort e         = e
+rewriteSort :: Rewriter
+rewriteSort (Add es)  = Add (L.sort es)
+rewriteSort (Mult es) = Mult (L.sort es)
+rewriteSort e         = e
