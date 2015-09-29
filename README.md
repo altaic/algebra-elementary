@@ -11,7 +11,7 @@ A haskell package for all your symbolic elementary algebra needs! It currently p
 ## Coming soon...
 
 * AST annotations
-* pretty-printer and parser
+* pretty-printers (Latex, Mathematica, SageMath, etc.) and parsers
 * full computation/solving
 * trigonometric functions
 * summations
