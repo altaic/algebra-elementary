@@ -65,10 +65,10 @@ applyRewriters ss op =
 
 
 -- -------------------------------------------------------------------------------------------------
--- * Individual Rewriters (a.k.a. rewriters)
+-- * Individual Rewriters
 -- -------------------------------------------------------------------------------------------------
 
--- | Convenient list of all simplifiers.
+-- | Convenient list of all simplifiers. Note that some rewriters may not actually simplify.
 allSimplifiers :: [Rewriter]
 allSimplifiers = [ rewriteError
                  , rewriteMultEmpty
@@ -92,15 +92,32 @@ allSimplifiers = [ rewriteError
                  , rewriteSort
                  ]
 
--- | Empty 'Mult's, 'Add's, and 'Var's are invalid, so this nukes them.
-rewriteError :: Rewriter
-rewriteError (Var Id {name=""}) = Error "Empty Var!"
-rewriteError e                  = e
+
+
+-- -------------------------------------------------------------------------------------------------
+-- *** Log Rewriters
+-- -------------------------------------------------------------------------------------------------
 
 -- | This applies the 'Log' 'Exp' simplification @log_a(b^c)) => c*log_a(b)@.
 rewriteLogExp :: Rewriter
 rewriteLogExp (Log b (Exp bb ee)) = Mult [ee, Log b bb]
 rewriteLogExp e                   = e
+
+-- | Expands addition in 'Log's, e.g. @log_2(a*b) => log_2(a) + log_2(b)@.
+rewriteLogMult :: Rewriter
+rewriteLogMult (Log b (Mult es)) = Add (map (Log b) es)
+rewriteLogMult e                 = e
+
+-- | Eliminates `Log` with the same base and expression, e.g. @log_b(b) => 1@
+rewriteLogBB :: Rewriter
+rewriteLogBB (Log b e) | b == e = Coeff 1
+rewriteLogBB e         = e
+
+
+
+-- -------------------------------------------------------------------------------------------------
+-- *** Exp Rewriters
+-- -------------------------------------------------------------------------------------------------
 
 -- | This applies the 'Exp' 'Log' simplification @a^(log_a(b)) => b@.
 rewriteExpLog :: Rewriter
@@ -118,15 +135,11 @@ rewriteExpOne :: Rewriter
 rewriteExpOne (Exp e (Coeff 1)) = e
 rewriteExpOne e                 = e
 
--- | Expands addition in 'Log's, e.g. @log_2(a*b) => log_2(a) + log_2(b)@.
-rewriteLogMult :: Rewriter
-rewriteLogMult (Log b (Mult es)) = Add (map (Log b) es)
-rewriteLogMult e                 = e
 
--- | Eliminates `Log` with the same base and expression, e.g. @log_b(b) => 1@
-rewriteLogBB :: Rewriter
-rewriteLogBB (Log b e) | b == e = Coeff 1
-rewriteLogBB e         = e
+
+-- -------------------------------------------------------------------------------------------------
+-- *** Mult Rewriters
+-- -------------------------------------------------------------------------------------------------
 
 -- | This applies the 'Mult' 'Coeff' simplification @2*x*3*y*4 => 24*x*y@.
 rewriteMultCoeff :: Rewriter
@@ -154,6 +167,17 @@ rewriteMultAlike :: Rewriter
 rewriteMultAlike (Mult es) = Mult (foldr (\ees acc -> case ees of [eee] -> eee:acc; eee:eees -> (Exp eee (Coeff (fromIntegral (L.length eees)+1))):acc; [] -> acc) [] (L.group es))
 rewriteMultAlike e         = e
 
+-- | Flattens nested 'Mult's.
+rewriteMultFlatten :: Rewriter
+rewriteMultFlatten (Mult es) = Mult (foldr (\e acc -> case e of Mult ees -> ees ++ acc; ee -> ee:acc) [] es)
+rewriteMultFlatten e         = e
+
+
+
+-- -------------------------------------------------------------------------------------------------
+-- *** Add Rewriters
+-- -------------------------------------------------------------------------------------------------
+
 -- | Applies the common 'Add' simplification @a+a+a => 3*a@
 rewriteAddAlike :: Rewriter
 rewriteAddAlike (Add es) = Add (foldr (\ees acc -> case ees of [eee] -> eee:acc; eee:eees -> (Mult [Coeff (fromIntegral (L.length eees)+1), eee]):acc; [] -> acc) [] (L.group es))
@@ -168,11 +192,6 @@ rewriteAddTriv e         = e
 rewriteAddEmpty :: Rewriter
 rewriteAddEmpty (Add []) = Coeff 0
 rewriteAddEmpty e        = e
-
--- | Flattens nested 'Mult's.
-rewriteMultFlatten :: Rewriter
-rewriteMultFlatten (Mult es) = Mult (foldr (\e acc -> case e of Mult ees -> ees ++ acc; ee -> ee:acc) [] es)
-rewriteMultFlatten e         = e
 
 -- | This applies the 'Add' zero simplification @x+0 => x@.
 rewriteAddZero :: Rewriter
@@ -189,6 +208,17 @@ rewriteAddFlatten e        = e
 rewriteAddCoeff :: Rewriter
 rewriteAddCoeff (Add es) = Add ((Coeff c):ms) where (c, ms) = foldr (\e (cc, mms) -> case e of Coeff ccc -> (cc + ccc, mms); ee -> (cc, ee:mms)) (0, []) es
 rewriteAddCoeff e        = e
+
+
+
+-- -------------------------------------------------------------------------------------------------
+-- *** Other Rewriters
+-- -------------------------------------------------------------------------------------------------
+
+-- | Empty 'Mult's, 'Add's, and 'Var's are invalid, so this nukes them.
+rewriteError :: Rewriter
+rewriteError (Var Id {name=""}) = Error "Empty Var!"
+rewriteError e                  = e
 
 -- | Sorts an 'Expr'.
 rewriteSort :: Rewriter
