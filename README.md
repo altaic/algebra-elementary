@@ -19,6 +19,8 @@ A haskell package for all your symbolic elementary algebra needs! It currently p
 * [Wikipedia: Rewriting](https://en.wikipedia.org/wiki/Rewriting)
 * [Ben Kovach: Symbolic Calculus in Haskell](http://kovach.me/posts/2013-05-01-symbolic-calculus.html)
 * [Chris Taylor: The Algebra of Algebraic Data Types, Part 3](http://chris-taylor.github.io/blog/2013/02/13/the-algebra-of-algebraic-data-types-part-iii/)
+* [Whitepaper: A Lazy SMT-Solver for a Non-Linear Subset of Real Algebra](http://www.researchgate.net/profile/Erika_Abraham/publication/215662912_A_Lazy_SMT-Solver_for_a_Non-Linear_Subset_of_Real_Algebra/links/0fcfd50bcb245984fa000000.pdf)
+* [Whitepaper: SMT-Solving for the Real Algebra](http://www.researchgate.net/profile/Erika_Abraham/publication/215662910_SMT-Solving_for_the_First-Order_Theory_of_the_Reals/links/0fcfd50bcb245dbe95000000.pdf)
 
 ## Related unification libraries
 
