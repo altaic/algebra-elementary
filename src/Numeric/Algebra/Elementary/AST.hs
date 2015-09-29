@@ -180,15 +180,15 @@ data Universe = Universe { functions :: Set Fun }
 --
 -- __/TODO:/__ Using the INLINE pragma may be fragile; investigation needed.
 {-# INLINE mkId #-}
-mkId :: String -> Id
-mkId n = Id { name = n, unique = unsafePerformIO newUnique }
+mkId :: String -> IO Id
+mkId n = do u <- newUnique; return Id { name = n, unique = u }
 
 -- | Conveniently makes a variable for you.
 --
 -- >>> mkVar "x"
 -- Var (Id {name = "x", unique = <1>})
-mkVar :: String -> Expr
-mkVar = Var . mkId
+mkVar :: String -> IO Expr
+mkVar n = Var <$> mkId n
 
 -- | Makes a unique algebraic function.
 --
@@ -197,8 +197,8 @@ mkVar = Var . mkId
 --     , vars = fromList [Id {name = "x", unique = <4>}]
 --     , expr = Exp (Var (Id {name = "x", unique = <4>})) (Coeff (2 % 1))
 --     }
-mkFun :: String -> Expr -> Fun
-mkFun n e = Fun { ident=mkId n, vars=getVars e, expr=e } where
+mkFun :: String -> Expr -> IO Fun
+mkFun n e = do i <- mkId n; return Fun { ident=i, vars=getVars e, expr=e } where
   getVars :: Expr -> Set Id
   getVars (Var i)    = singleton i
   getVars (Add es)   = unions $ map getVars es

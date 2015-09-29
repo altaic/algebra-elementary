@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fdefer-typed-holes -fno-cse #-}
+{-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 
 -----------------------------------------------------------------------------
@@ -19,7 +19,7 @@ module Main where
 import qualified Data.Unique                        as U
 import           Numeric.Algebra.Elementary.AST     as A
 import           Numeric.Algebra.Elementary.Rewrite as R
-import qualified System.IO.Unsafe                   as US
+import           System.IO.Unsafe                   (unsafePerformIO)
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck              as QC
@@ -42,7 +42,7 @@ unitTests :: TestTree
 unitTests = testGroup "Unit Tests" [utMathSimplifier, utMathOther]
 
 algVars :: [A.Expr]
-algVars = map (\c -> A.mkVar [c]) ['a'..'z']
+algVars = map (\c -> unsafePerformIO $ A.mkVar [c]) ['a'..'z']
 
 utMathSimplifier :: TestTree
 utMathSimplifier = testGroup "Simplifier" [
@@ -87,11 +87,11 @@ utMathOther :: TestTree
 utMathOther = testGroup "Other" [
   -- testCase "Variable Substitution"             $ A.subst ("a", A.Exp (A.Coeff 2) (algVars!!13)) (A.Exp (algVars!!12) (algVars!!0))
   --                                              @?= A.Exp (algVars!!12) (A.Exp (A.Coeff 2) (algVars!!13)),
-  testCase "Error Checking (raw, fail)"        $ A.check (A.Exp (A.Coeff 2) (A.mkVar ""))
+  testCase "Error Checking (raw, fail)"        $ A.check (A.Exp (A.Coeff 2) (unsafePerformIO $ A.mkVar ""))
                                                @?= False,
   testCase "Error Checking (raw, pass)"        $ A.check (A.Exp (A.Coeff 2) (algVars!!23))
                                                @?= True,
-  testCase "Error Checking (simplified, fail)" $ A.check (R.simplify (A.Exp (A.Coeff 2) (A.mkVar "")))
+  testCase "Error Checking (simplified, fail)" $ A.check (R.simplify (A.Exp (A.Coeff 2) (unsafePerformIO $ A.mkVar "")))
                                                @?= False,
   testCase "Error Checking (simplified, pass)" $ A.check (R.simplify (A.Exp (A.Coeff 2) (algVars!!23)))
                                                @?= True,
@@ -101,9 +101,11 @@ utMathOther = testGroup "Other" [
                                                @?= False,
   testCase "Equality (fail-2)"                 $ A.Exp (A.Coeff 2) (A.Mult [algVars!!23, algVars!!24]) == A.Exp (A.Coeff 2) (algVars!!23)
                                                @?= False,
-  testCase "Uniques Are Unique"                $ US.unsafePerformIO U.newUnique /= US.unsafePerformIO U.newUnique
+  testCase "Uniques Are Unique"                $ unsafePerformIO (do u1 <- U.newUnique; u2 <- U.newUnique; return $ u1 /= u2)
                                                @?= True,
-  testCase "Ids Are Unique"                    $ A.mkId "a" /= A.mkId "a"
+  testCase "Ids Are Unique"                    $ unsafePerformIO (do i1 <- A.mkId "a"; i2 <- A.mkId "a"; return $ i1 /= i2)
                                                @?= True,
-  testCase "Vars Are Unique"                   $ A.mkVar "a" /= A.mkVar "a"
+  testCase "Vars Are Unique"                   $ unsafePerformIO (do i1 <- A.mkVar "a"; i2 <- A.mkVar "a"; return $ i1 /= i2)
+                                               @?= True,
+  testCase "Funs Are Unique"                   $ unsafePerformIO (do f1 <- A.mkFun "a" $ Coeff 2; f2 <- A.mkFun "a" $ Coeff 2; return $ f1 /= f2)
                                                @?= True ]
