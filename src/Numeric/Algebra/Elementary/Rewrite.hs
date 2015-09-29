@@ -108,7 +108,7 @@ rewriteLogMult :: Rewriter
 rewriteLogMult (Log b (Mult es)) = Add (map (Log b) es)
 rewriteLogMult e                 = e
 
--- | Eliminates `Log` with the same base and expression, e.g. @log_b(b) => 1@
+-- | Eliminates `Log` with the same base and expression, e.g. @log_b(b) => 1@.
 rewriteLogBB :: Rewriter
 rewriteLogBB (Log b e) | b == e = Coeff 1
 rewriteLogBB e         = e
@@ -130,7 +130,7 @@ rewriteExpCoeff (Exp (Coeff a) (Coeff b))         = Coeff (toRational ((fromRati
 rewriteExpCoeff (Exp (Coeff a) (Exp (Coeff b) e)) = Exp (Coeff (toRational ((fromRational a ** fromRational b) :: Double))) e
 rewriteExpCoeff e                                 = e
 
--- | This applies the 'Exp' by one simplification @x^1 => x@
+-- | This applies the 'Exp' by one simplification @x^1 => x@.
 rewriteExpOne :: Rewriter
 rewriteExpOne (Exp e (Coeff 1)) = e
 rewriteExpOne e                 = e
@@ -162,7 +162,7 @@ rewriteMultEmpty :: Rewriter
 rewriteMultEmpty (Mult []) = Coeff 1
 rewriteMultEmpty e        = e
 
--- | Applies the common 'Mult' simplification @a*a*a => a^3@
+-- | Applies the common 'Mult' simplification @a*a*a => a^3@.
 rewriteMultAlike :: Rewriter
 rewriteMultAlike (Mult es) = Mult (foldr (\ees acc -> case ees of [eee] -> eee:acc; eee:eees -> (Exp eee (Coeff (fromIntegral (L.length eees)+1))):acc; [] -> acc) [] (L.group es))
 rewriteMultAlike e         = e
@@ -178,7 +178,7 @@ rewriteMultFlatten e         = e
 -- *** Add Rewriters
 -- -------------------------------------------------------------------------------------------------
 
--- | Applies the common 'Add' simplification @a+a+a => 3*a@
+-- | Applies the common 'Add' simplification @a+a+a => 3*a@.
 rewriteAddAlike :: Rewriter
 rewriteAddAlike (Add es) = Add (foldr (\ees acc -> case ees of [eee] -> eee:acc; eee:eees -> (Mult [Coeff (fromIntegral (L.length eees)+1), eee]):acc; [] -> acc) [] (L.group es))
 rewriteAddAlike e        = e
