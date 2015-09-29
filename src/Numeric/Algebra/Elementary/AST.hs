@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fdefer-typed-holes -fno-warn-orphans #-}
 -- {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 
 ----------------------------------------------------------------------------------------------------
@@ -32,13 +32,14 @@
 
 module Numeric.Algebra.Elementary.AST where
 
-import qualified Control.Monad    as M
-import qualified Data.Char        as C
-import qualified Data.Set         as S
-import qualified Data.Unique      as U
-import qualified System.IO.Unsafe as US
+import           Control.Monad    (liftM, liftM2)
+import           Data.Char        (ord)
+import           Data.Set         (Set, empty, fromList, singleton, union,
+                                   unions)
+import           Data.Unique      (Unique, hashUnique, newUnique)
+import           GHC.Generics     (Generic)
+import           System.IO.Unsafe (unsafePerformIO)
 import qualified Test.QuickCheck  as QC
-import GHC.Generics (Generic)
 
 
 
@@ -74,9 +75,9 @@ instance Ord Expr where
     | otherwise = compare (rank e1) (rank e2)
     where
       rankId :: Id -> Double
-      rankId (Id {name=n}) = sum $ map (fromIntegral . C.ord) n
+      rankId (Id {name=n}) = sum $ map (fromIntegral . ord) n
       rankSt :: String -> Double
-      rankSt s = sum $ map (fromIntegral . C.ord) s -- __/TODO/__: Possibly use Data.Char.digitToInt instead.
+      rankSt s = sum $ map (fromIntegral . ord) s -- __/TODO/__: Possibly use Data.Char.digitToInt instead.
       rankHelper :: Double -> Double
       rankHelper 0 = 0
       rankHelper n = 1 - 1/n
@@ -95,16 +96,16 @@ instance QC.Arbitrary Expr where
   arbitrary = QC.sized arbExpr
     where
       arbExpr :: Int -> QC.Gen Expr
-      arbExpr 0 = QC.oneof [ M.liftM Var (QC.arbitrary :: QC.Gen Id), M.liftM Coeff (QC.arbitrary :: QC.Gen Rational) ]
+      arbExpr 0 = QC.oneof [ liftM Var (QC.arbitrary :: QC.Gen Id), liftM Coeff (QC.arbitrary :: QC.Gen Rational) ]
       arbExpr n = do
         j <- QC.choose (1,n)
         k <- QC.choose (1,3)
-        QC.oneof [ M.liftM Var (QC.arbitrary :: QC.Gen Id)
-                 , M.liftM Coeff QC.arbitrary
-                 , M.liftM2 Exp (arbExpr j) (arbExpr (n-j))
-                 , M.liftM2 Log (arbExpr j) (arbExpr (n-j))
-                 , M.liftM Add (QC.vectorOf k (arbExpr (n `div` k)))
-                 , M.liftM Mult (QC.vectorOf k (arbExpr (n `div` k)))
+        QC.oneof [ liftM Var (QC.arbitrary :: QC.Gen Id)
+                 , liftM Coeff QC.arbitrary
+                 , liftM2 Exp (arbExpr j) (arbExpr (n-j))
+                 , liftM2 Log (arbExpr j) (arbExpr (n-j))
+                 , liftM Add (QC.vectorOf k (arbExpr (n `div` k)))
+                 , liftM Mult (QC.vectorOf k (arbExpr (n `div` k)))
                  ]
   shrink = QC.genericShrink
 
@@ -115,7 +116,7 @@ instance QC.Arbitrary Expr where
 -- -------------------------------------------------------------------------------------------------
 
 -- | A unique algebraic identifier, e.g. @x@.
-data Id = Id {name :: String, unique :: U.Unique }
+data Id = Id {name :: String, unique :: Unique }
   deriving (Eq, Show, Generic)
 
 -- | Order identifiers first by name, then, if the names match, by unique.
@@ -125,14 +126,14 @@ instance Ord Id where
     | otherwise = compare u1 u2
 
 -- | Show uniques using their hash. Keep in mind that there can be collisions.
-instance Show U.Unique where
-  show u = "<" ++ show (U.hashUnique u) ++ ">"
+instance Show Unique where
+  show u = "<" ++ show (hashUnique u) ++ ">"
 
 -- | 'Arbitrary' 'Id' instance for 'QuickCheck'.
 instance QC.Arbitrary Id where
   arbitrary = do
     n <- QC.choose (1,4) >>= genVarName
-    return Id { name = n , unique = US.unsafePerformIO U.newUnique }
+    return Id { name = n , unique = unsafePerformIO newUnique }
     where
       genVarName :: Int -> QC.Gen String
       genVarName l = QC.vectorOf l $ QC.elements ['a'..'z']
@@ -144,7 +145,7 @@ instance QC.Arbitrary Id where
 -- -------------------------------------------------------------------------------------------------
 
 -- | An algebraic function, e.g. @f(x,y) = x^2 + y^2@.
-data Fun = Fun { ident :: Id, vars :: S.Set Id, expr :: Expr } deriving (Show, Generic)
+data Fun = Fun { ident :: Id, vars :: Set Id, expr :: Expr } deriving (Show, Generic)
 
 -- | Equality according to unique function identifier.
 instance Eq Fun where (==) Fun {ident=i1} Fun {ident=i2} = i1 == i2
@@ -161,7 +162,7 @@ instance Ord Fun where compare Fun {ident=i1} Fun {ident=i2} = compare i1 i2
 -- | This contains and tracks globally scoped stuff, e.g. functions.
 --
 -- __/TODO:/__ Necessary? Desirable?
-data Universe = Universe { functions :: S.Set Fun }
+data Universe = Universe { functions :: Set Fun }
 
 
 
@@ -179,8 +180,9 @@ data Universe = Universe { functions :: S.Set Fun }
 --
 -- __/FIXME:/__ For some reason, the test-suite generates 'Id's with all the same 'Unique',
 -- specifically <1>.
+{-# INLINE mkId #-}
 mkId :: String -> Id
-mkId n = let u = US.unsafePerformIO U.newUnique in Id { name = n, unique = u }
+mkId n = Id { name = n, unique = unsafePerformIO newUnique }
 
 -- | Conveniently makes a variable for you.
 --
@@ -198,14 +200,14 @@ mkVar = Var . mkId
 --     }
 mkFun :: String -> Expr -> Fun
 mkFun n e = Fun { ident=mkId n, vars=getVars e, expr=e } where
-  getVars :: Expr -> S.Set Id
-  getVars (Var i)    = S.singleton i
-  getVars (Add es)   = S.unions $ map getVars es
-  getVars (Mult es)  = S.unions $ map getVars es
-  getVars (Exp b ee) = S.union (getVars b) (getVars ee)
-  getVars (Log b ee) = S.union (getVars b) (getVars ee)
-  getVars (App _ vs) = S.fromList vs
-  getVars _          = S.empty
+  getVars :: Expr -> Set Id
+  getVars (Var i)    = singleton i
+  getVars (Add es)   = unions $ map getVars es
+  getVars (Mult es)  = unions $ map getVars es
+  getVars (Exp b ee) = getVars b `union` getVars ee
+  getVars (Log b ee) = getVars b `union` getVars ee
+  getVars (App _ vs) = fromList vs
+  getVars _          = empty
 
 -- | Verifies that an 'Expr' is valid or not.
 --

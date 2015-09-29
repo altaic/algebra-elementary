@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fdefer-typed-holes #-}
+{-# OPTIONS_GHC -fdefer-typed-holes -fno-cse #-}
 
 
 -----------------------------------------------------------------------------
@@ -43,15 +43,6 @@ unitTests = testGroup "Unit Tests" [utMathSimplifier, utMathOther]
 
 algVars :: [A.Expr]
 algVars = map (\c -> A.mkVar [c]) ['a'..'z']
-
-algSameIds :: [A.Id]
-algSameIds = [A.mkId "a", A.mkId "a"]
-
-algSameVars :: [A.Expr]
-algSameVars = [A.mkVar "a", A.mkVar "a"]
-
-uniques :: [U.Unique]
-uniques = [US.unsafePerformIO U.newUnique, US.unsafePerformIO U.newUnique]
 
 utMathSimplifier :: TestTree
 utMathSimplifier = testGroup "Simplifier" [
@@ -109,10 +100,10 @@ utMathOther = testGroup "Other" [
   testCase "Equality (fail-1)"                 $ A.Exp (A.Coeff 3) (algVars!!23) == A.Exp (A.Coeff 2) (algVars!!23)
                                                @?= False,
   testCase "Equality (fail-2)"                 $ A.Exp (A.Coeff 2) (A.Mult [algVars!!23, algVars!!24]) == A.Exp (A.Coeff 2) (algVars!!23)
-                                               @?= False ]
-  -- testCase "Uniques Are Unique"                $ uniques!!0 /= uniques!!1
-  --                                              @?= True,
-  -- testCase "Ids Are Unique"                    $ algSameIds!!0 /= algSameIds!!1
-  --                                              @?= True,
-  -- testCase "Vars Are Unique"                   $ algSameVars!!0 /= algSameVars!!1
-  --                                              @?= True ]
+                                               @?= False,
+  testCase "Uniques Are Unique"                $ US.unsafePerformIO U.newUnique /= US.unsafePerformIO U.newUnique
+                                               @?= True,
+  testCase "Ids Are Unique"                    $ A.mkId "a" /= A.mkId "a"
+                                               @?= True,
+  testCase "Vars Are Unique"                   $ A.mkVar "a" /= A.mkVar "a"
+                                               @?= True ]
