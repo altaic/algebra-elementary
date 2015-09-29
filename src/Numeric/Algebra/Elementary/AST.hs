@@ -178,8 +178,7 @@ data Universe = Universe { functions :: Set Fun }
 -- >>> (mkId "x", mkId "y")
 -- (Id {name = "x", unique = <1>},Id {name = "y", unique = <2>})
 --
--- __/FIXME:/__ For some reason, the test-suite generates 'Id's with all the same 'Unique',
--- specifically <1>.
+-- __/TODO:/__ Using the INLINE pragma may be fragile; investigation needed.
 {-# INLINE mkId #-}
 mkId :: String -> Id
 mkId n = Id { name = n, unique = unsafePerformIO newUnique }
