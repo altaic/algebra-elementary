@@ -1,7 +1,4 @@
-# algebra-elementary
-
-![License](https://img.shields.io/badge/license-BSD3-blue.svg?style=flat)
-[![Build Status](https://travis-ci.org/altaic/algebra-elementary.svg?branch=master)](https://travis-ci.org/altaic/algebra-elementary)
+# algebra-elementary ![License](https://img.shields.io/badge/license-BSD3-blue.svg?style=flat) [![Build Status](https://travis-ci.org/altaic/algebra-elementary.svg?branch=master)](https://travis-ci.org/altaic/algebra-elementary)
 
 ## What is this?
 
