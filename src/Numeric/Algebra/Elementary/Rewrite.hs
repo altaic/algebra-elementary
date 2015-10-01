@@ -56,7 +56,7 @@ applyRewriters ss op =
     Exp b e  -> applyFuncs ss $ Exp (applyRewriters ss b) (applyRewriters ss e)
     Log b e  -> applyFuncs ss $ Log (applyRewriters ss b) (applyRewriters ss e)
     Coeff e  -> applyFuncs ss $ Coeff e
-    Var e    -> applyFuncs ss $ Var e
+    Var i    -> applyFuncs ss $ Var i
     App i vs -> applyFuncs ss $ App i vs
     Error e  -> applyFuncs ss $ Error e -- __/NOTE:/__ I can't presently think of a reason to apply a rewriter to an Error, but I'll leave it just in case.
   where
@@ -70,8 +70,7 @@ applyRewriters ss op =
 
 -- | Convenient list of all simplifiers. Note that some rewriters may not actually simplify.
 allSimplifiers :: [Rewriter]
-allSimplifiers = [ rewriteError
-                 , rewriteMultEmpty
+allSimplifiers = [ rewriteMultEmpty
                  , rewriteAddEmpty
                  , rewriteMultFlatten
                  , rewriteAddFlatten
@@ -214,11 +213,6 @@ rewriteAddCoeff e        = e
 -- -------------------------------------------------------------------------------------------------
 -- *** Other Rewriters
 -- -------------------------------------------------------------------------------------------------
-
--- | Empty 'Mult's, 'Add's, and 'Var's are invalid, so this nukes them.
-rewriteError :: Rewriter
-rewriteError (Var Id {name=""}) = Error "Empty Var!"
-rewriteError e                  = e
 
 -- | Sorts an 'Expr'.
 rewriteSort :: Rewriter

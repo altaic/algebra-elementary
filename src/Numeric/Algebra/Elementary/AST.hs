@@ -36,9 +36,7 @@ import           Control.Monad    (liftM, liftM2)
 import           Data.Char        (ord)
 import           Data.Set         (Set, empty, fromList, singleton, union,
                                    unions)
-import           Data.Unique      (Unique, hashUnique, newUnique)
 import           GHC.Generics     (Generic)
-import           System.IO.Unsafe (unsafePerformIO)
 import qualified Test.QuickCheck  as QC
 
 
@@ -75,7 +73,7 @@ instance Ord Expr where
     | otherwise = compare (rank e1) (rank e2)
     where
       rankId :: Id -> Double
-      rankId (Id {name=n}) = sum $ map (fromIntegral . ord) n
+      rankId (Id n) = sum $ map (fromIntegral . ord) n
       rankSt :: String -> Double
       rankSt s = sum $ map (fromIntegral . ord) s -- __/TODO/__: Possibly use Data.Char.digitToInt instead.
       rankHelper :: Double -> Double
@@ -116,24 +114,14 @@ instance QC.Arbitrary Expr where
 -- -------------------------------------------------------------------------------------------------
 
 -- | A unique algebraic identifier, e.g. @x@.
-data Id = Id {name :: String, unique :: Unique }
-  deriving (Eq, Show, Generic)
-
--- | Order identifiers first by name, then, if the names match, by unique.
-instance Ord Id where
-  compare Id {name=n1, unique=u1} Id {name=n2, unique=u2}
-    | n1 /= n2  = compare n1 n2
-    | otherwise = compare u1 u2
-
--- | Show uniques using their hash. Keep in mind that there can be collisions.
-instance Show Unique where
-  show u = "<" ++ show (hashUnique u) ++ ">"
+data Id = Id String
+  deriving (Eq, Ord, Show, Generic)
 
 -- | 'Arbitrary' 'Id' instance for 'QuickCheck'.
 instance QC.Arbitrary Id where
   arbitrary = do
     n <- QC.choose (1,4) >>= genVarName
-    return Id { name = n , unique = unsafePerformIO newUnique }
+    return $ Id n
     where
       genVarName :: Int -> QC.Gen String
       genVarName l = QC.vectorOf l $ QC.elements ['a'..'z']
@@ -173,22 +161,19 @@ data Universe = Universe { functions :: Set Fun }
 -- instance Show Id where
 --   show i = show name
 
--- | Makes a unique identifier.
+-- | Makes an identifier.
 --
 -- >>> (mkId "x", mkId "y")
 -- (Id {name = "x", unique = <1>},Id {name = "y", unique = <2>})
---
--- __/TODO:/__ Using the INLINE pragma may be fragile; investigation needed.
-{-# INLINE mkId #-}
-mkId :: String -> IO Id
-mkId n = do u <- newUnique; return Id { name = n, unique = u }
+mkId :: String -> Id
+mkId = Id
 
 -- | Conveniently makes a variable for you.
 --
 -- >>> mkVar "x"
 -- Var (Id {name = "x", unique = <1>})
-mkVar :: String -> IO Expr
-mkVar n = Var <$> mkId n
+mkVar :: String -> Expr
+mkVar = Var <$> mkId
 
 -- | Makes a unique algebraic function.
 --
@@ -197,36 +182,17 @@ mkVar n = Var <$> mkId n
 --     , vars = fromList [Id {name = "x", unique = <4>}]
 --     , expr = Exp (Var (Id {name = "x", unique = <4>})) (Coeff (2 % 1))
 --     }
-mkFun :: String -> Expr -> IO Fun
-mkFun n e = do i <- mkId n; return Fun { ident=i, vars=getVars e, expr=e } where
-  getVars :: Expr -> Set Id
-  getVars (Var i)    = singleton i
-  getVars (Add es)   = unions $ map getVars es
-  getVars (Mult es)  = unions $ map getVars es
-  getVars (Exp b ee) = getVars b `union` getVars ee
-  getVars (Log b ee) = getVars b `union` getVars ee
-  getVars (App _ vs) = fromList vs
-  getVars _          = empty
-
--- | Verifies that an 'Expr' is valid or not.
---
--- __/TODO:/__ Is there a way to just prevent empty lists in the Expr types?
---
--- __/TODO:/__ Thread an exception through somehow for failure information?
---
--- >>> check (Mult [Coeff 5, mkVar "x", Coeff 2])
--- True
---
--- >>> check (Mult [Coeff 5, mkVar "", Coeff 2])
--- False
-check :: Expr -> Bool
-check (Add es)           = all check es
-check (Mult es)          = all check es
-check (Log b e)          = check b && check e
-check (Exp b e)          = check b && check e
-check (Var Id {name=""}) = False
-check (Error _)          = False
-check _                  = True
+mkFun :: String -> Expr -> Fun
+mkFun n e = Fun { ident=mkId n, vars=getVars e, expr=e }
+  where
+    getVars :: Expr -> Set Id
+    getVars (Var i)    = singleton i
+    getVars (Add es)   = unions $ map getVars es
+    getVars (Mult es)  = unions $ map getVars es
+    getVars (Exp b ee) = getVars b `union` getVars ee
+    getVars (Log b ee) = getVars b `union` getVars ee
+    getVars (App _ vs) = fromList vs
+    getVars _          = empty
 
 -- -- | Substitutes an 'Expr' into an 'Expr', e.g. @a=2 /-> a + a^b^a => 2 + 2^b^2@.
 -- subst :: Expr -> Expr -> Expr
