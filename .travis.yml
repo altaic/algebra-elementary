@@ -21,7 +21,7 @@ install:
   - mv stack-0.1.6.0-linux-x86_64/stack stack
   - chmod +x stack
   - travis_retry ./stack setup
-  - travis_retry ./stack install -j4 --verbosity info hlint
+  - travis_retry ./stack install hlint
   - travis_retry ./stack install --only-snapshot -j4 --verbosity info
 
 script:
