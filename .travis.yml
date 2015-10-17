@@ -8,9 +8,10 @@ cache:
     - $HOME/.stack
 
 env:
+  global:
+    - TERM=dumb
   matrix:
     - STACK_YAML=stack.yaml
-    - TERM=dumb
 
 addons:
   apt:
@@ -31,7 +32,7 @@ install:
   - travis_retry ./stack install --only-snapshot -j4 --verbosity info
 
 script:
-  - ./cloc .
+  - ./cloc --exclude-list-file=cloc .
   - hlint .; echo
   - echo FIXMES `grep -r --include=\*\.{hs,lhs} FIXME . | wc`
   - ./stack haddock
