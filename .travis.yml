@@ -33,7 +33,7 @@ install:
 script:
   - ./cloc .
   - hlint .; echo
-  - grep -r --include=\*\.{hs,lhs} FIXME . | wc
+  - echo FIXMES `grep -r --include=\*\.{hs,lhs} FIXME . | wc`
   - ./stack haddock
   - ./stack clean
   - ./stack test --coverage
