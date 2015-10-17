@@ -12,8 +12,8 @@ import Criterion.Main
 
 
 main :: IO ()
-main = defaultMain [ bgroup "rewrite" [ bench "?"   $ whnf simplify _
-                                      , bench "??"  $ whnf simplify _
-                                      , bench "???" $ whnf simplify _
+main = defaultMain [ bgroup "rewrite" [ bench "?"   $ whnf simplify undefined
+                                      , bench "??"  $ whnf simplify undefined
+                                      , bench "???" $ whnf simplify undefined
                                       ]
                    ]
