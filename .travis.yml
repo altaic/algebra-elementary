@@ -10,6 +10,7 @@ cache:
 env:
   matrix:
     - STACK_YAML=stack.yaml
+    - TERM=dumb
 
 addons:
   apt:
@@ -17,7 +18,6 @@ addons:
     - hlint
 
 before_install:
-  - export TERM=dumb
 
 install:
   - travis_retry wget https://github.com/AlDanial/cloc/releases/download/1.64/cloc-1.64.pl
