@@ -14,13 +14,15 @@ env:
 addons:
   apt:
     packages:
-    - cloc
     - hlint
 
 before_install:
   - export TERM=dumb
 
 install:
+  - travis_retry wget https://github.com/AlDanial/cloc/releases/download/1.64/cloc-1.64.pl
+  - mv cloc-1.64.pl cloc
+  - chmod +x cloc
   - travis_retry wget https://github.com/commercialhaskell/stack/releases/download/v0.1.6.0/stack-0.1.6.0-linux-x86_64.tar.gz
   - tar xzf stack-0.1.6.0-linux-x86_64.tar.gz
   - mv stack-0.1.6.0-linux-x86_64/stack stack
@@ -29,7 +31,7 @@ install:
   - travis_retry ./stack install --only-snapshot -j4 --verbosity info
 
 script:
-  - cloc .
+  - ./cloc .
   - hlint .; echo
   - grep -r --include=\*\.{hs,lhs} FIXME . | wc
   - ./stack haddock
