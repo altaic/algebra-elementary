@@ -25,9 +25,9 @@ install:
   - travis_retry ./stack install --only-snapshot -j4 --verbosity info
 
 script:
+  - cloc .
   - hlint .
   - grep -r --include=\*\.{hs,lhs} FIXME . | wc
-  - cloc
   - ./stack haddock
   - ./stack clean
   - ./stack test --coverage
