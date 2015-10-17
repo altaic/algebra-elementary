@@ -16,7 +16,7 @@ before_install:
   - sudo apt-get install -y cloc
 
 install:
-  - travis_retry wget https://github.com/commercialhaskell/stack/releases/download/v0.1.6.0/stack-0.1.6.0-x86_64-linux.tar.gz
+  - travis_retry wget https://github.com/commercialhaskell/stack/releases/download/v0.1.6.0/stack-0.1.6.0-linux-x86_64.tar.gz
   - tar xzf stack-0.1.6.0-x86_64-linux.tar.gz
   - mv stack-0.1.6.0-x86_64-linux/stack stack
   - chmod +x stack
