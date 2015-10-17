@@ -28,8 +28,7 @@ extra-source-files:
   benchmark/*.hs
 
 library
-  hs-source-dirs:
-    src
+  hs-source-dirs: src
   exposed-modules:
     Numeric.Algebra.Elementary.AST
     Numeric.Algebra.Elementary.Parse
@@ -51,12 +50,13 @@ test-suite algebra-elementary-test
   type:           exitcode-stdio-1.0
   hs-source-dirs: testsuite
   main-is:        Tasty.hs
+  other-modules:
   build-depends:
-    base               >= 4.6 && < 5,
-    tasty              >= 0.10 && < 0.11,
-    tasty              >= 0.10 && < 0.11,
-    tasty-hunit        >= 0.9 && < 0.10,
-    tasty-quickcheck   >= 0.8 && < 0.9,
+    base                 >= 4 && < 5,
+    tasty                >= 0.10 && < 0.11,
+    tasty                >= 0.10 && < 0.11,
+    tasty-hunit          >= 0.9 && < 0.10,
+    tasty-quickcheck     >= 0.8 && < 0.9,
     algebra-elementary
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
@@ -74,4 +74,4 @@ benchmark algebra-elementary-bench
 
 source-repository head
   type: git
-  location: https://github.com/altaic/ghc-plugin-aca.git
+  location: https://github.com/altaic/algebra-elementary.git
