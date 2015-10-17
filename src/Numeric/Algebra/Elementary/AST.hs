@@ -34,8 +34,7 @@ module Numeric.Algebra.Elementary.AST where
 
 import           Control.Monad    (liftM, liftM2)
 import           Data.Char        (ord)
-import           Data.Set         (Set, empty, fromList, singleton, union,
-                                   unions)
+import           Data.Set         (Set, empty, fromList, singleton, union, unions)
 import           GHC.Generics     (Generic)
 import qualified Test.QuickCheck  as QC
 
@@ -119,9 +118,7 @@ data Id = Id String
 
 -- | 'Arbitrary' 'Id' instance for 'QuickCheck'.
 instance QC.Arbitrary Id where
-  arbitrary = do
-    n <- QC.choose (1,4) >>= genVarName
-    return $ Id n
+  arbitrary = liftM Id (QC.choose (1,4) >>= genVarName)
     where
       genVarName :: Int -> QC.Gen String
       genVarName l = QC.vectorOf l $ QC.elements ['a'..'z']
