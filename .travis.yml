@@ -1,4 +1,4 @@
-sudo: true
+sudo: false
 
 language: haskell
 ghc: 7.10.2
@@ -11,11 +11,14 @@ env:
   matrix:
     - STACK_YAML=stack.yaml
 
+addons:
+  apt:
+    packages:
+    - cloc
+    - hlint
+
 before_install:
   - export TERM=dumb
-  - sudo apt-get update -qq
-  - sudo apt-get install -y cloc
-  - sudo apt-get install -y hlint
 
 install:
   - travis_retry wget https://github.com/commercialhaskell/stack/releases/download/v0.1.6.0/stack-0.1.6.0-linux-x86_64.tar.gz
