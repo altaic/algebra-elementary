@@ -25,10 +25,9 @@ install:
   - travis_retry ./stack install --only-snapshot -j4 --verbosity info
 
 script:
-  - ./stack build
-  - ./stack clean
-  - ./stack test --coverage
-  - ./stack haddock
   - hlint .
   - grep -r --include=\*\.{hs,lhs} FIXME . | wc
-  - cloc --quiet --include-lang Haskell
+  - cloc
+  - ./stack haddock
+  - ./stack clean
+  - ./stack test --coverage
