@@ -26,7 +26,7 @@ install:
 
 script:
   - cloc .
-  - hlint .
+  - hlint .; echo
   - grep -r --include=\*\.{hs,lhs} FIXME . | wc
   - ./stack haddock
   - ./stack clean
