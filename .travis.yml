@@ -17,8 +17,8 @@ before_install:
 
 install:
   - travis_retry wget https://github.com/commercialhaskell/stack/releases/download/v0.1.6.0/stack-0.1.6.0-linux-x86_64.tar.gz
-  - tar xzf stack-0.1.6.0-x86_64-linux.tar.gz
-  - mv stack-0.1.6.0-x86_64-linux/stack stack
+  - tar xzf stack-0.1.6.0-linux-x86_64.tar.gz
+  - mv stack-0.1.6.0-linux-x86_64/stack stack
   - chmod +x stack
   - travis_retry ./stack setup
   - travis_retry ./stack install -j4 --verbosity info hlint
